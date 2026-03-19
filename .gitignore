@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.local
+.next/
+dist/
+*.db
+*.log
+.token.tmp
+credentials.txt.txt
+reset_password.js
+promote_admin.js

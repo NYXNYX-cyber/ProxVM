@@ -1,0 +1,10 @@
+import { Request, Response, NextFunction } from 'express';
+export interface AuthRequest extends Request {
+    user?: {
+        userId: string;
+        email: string;
+        role: string;
+    };
+}
+export declare const authenticateJWT: (req: AuthRequest, res: Response, next: NextFunction) => any;
+//# sourceMappingURL=auth.d.ts.map
