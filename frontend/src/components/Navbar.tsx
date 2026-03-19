@@ -16,8 +16,9 @@ export function Navbar() {
   const fetchUser = useCallback(async () => {
     const token = Cookies.get("token");
     if (!token) return setUser(null);
+    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
-      const res = await axios.get("http://localhost:4000/api/auth/me", {
+      const res = await axios.get(`${apiBase}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(res.data.user);
