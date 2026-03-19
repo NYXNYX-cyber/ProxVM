@@ -16,6 +16,7 @@ const LXCStats = ({ id, onNotFound, onStatusUpdate }: { id: string, onNotFound: 
 
   const sync = useCallback(async () => {
     try {
+      const token = Cookies.get("token");
       const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
       const res = await axios.get(`${apiBase}/api/vps/${id}/status?t=${Date.now()}`, {
         headers: { Authorization: `Bearer ${token}` }
