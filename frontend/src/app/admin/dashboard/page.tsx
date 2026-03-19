@@ -87,6 +87,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const toggleRole = async (userId: string, currentRole: string) => {
+    const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
+    if (!confirm(`Ubah role user ini menjadi ${newRole}?`)) return;
+
+    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    try {
+      const token = Cookies.get("token");
+      await axios.post(`${apiBase}/api/admin/role/update`, 
+        { userId, role: newRole },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchData();
+    } catch (e) {
+      alert("Failed to update role");
+    }
+  };
+
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-zinc-950">
       <Loader2 className="animate-spin text-indigo-500" size={40} />
@@ -167,6 +184,13 @@ export default function AdminDashboard() {
                       <td className="px-8 py-6 font-bold text-indigo-400">{u._count.instances} Active</td>
                       <td className="px-8 py-6">
                         <div className="flex justify-end gap-3">
+                          <button 
+                            onClick={() => toggleRole(u.id, u.role)}
+                            className={`p-2 rounded-xl transition-all ${u.role === 'ADMIN' ? 'bg-indigo-600/20 text-indigo-500 hover:bg-zinc-800 hover:text-zinc-400' : 'bg-zinc-800 text-zinc-400 hover:bg-indigo-500/20 hover:text-indigo-500'}`}
+                            title={u.role === 'ADMIN' ? "Revoke Admin" : "Make Admin"}
+                          >
+                            <ShieldCheck size={18} />
+                          </button>
                           <button 
                             onClick={() => updateCredits(u.id, u.credits)}
                             className="p-2 bg-zinc-800 hover:bg-emerald-500/20 text-zinc-400 hover:text-emerald-500 rounded-xl transition-all"

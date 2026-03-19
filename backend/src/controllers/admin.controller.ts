@@ -43,6 +43,19 @@ export const updateUserCredits = async (req: AuthRequest, res: Response): Promis
   }
 };
 
+export const updateUserRole = async (req: AuthRequest, res: Response): Promise<any> => {
+  const { userId, role } = req.body;
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { role: role }
+    });
+    return res.json({ message: `Role berhasil diubah ke ${role}`, user });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Gagal memperbarui role' });
+  }
+};
+
 export const getAllInstances = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const instances = await prisma.instance.findMany({

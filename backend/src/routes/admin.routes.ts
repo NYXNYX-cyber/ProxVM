@@ -11,6 +11,7 @@ router.use(adminController.isAdmin);
 router.get('/users', adminController.getAllUsers);
 router.get('/instances', adminController.getAllInstances);
 router.post('/credits/update', adminController.updateUserCredits);
+router.post('/role/update', adminController.updateUserRole);
 router.delete('/users/:id', adminController.deleteUser);
 
 export default router;
