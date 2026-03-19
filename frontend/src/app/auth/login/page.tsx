@@ -16,8 +16,9 @@ export default function Login() {
   const submit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
+    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
-      const res = await axios.post("http://localhost:4000/api/auth/login", form);
+      const res = await axios.post(`${apiBase}/api/auth/login`, form);
       Cookies.set("token", res.data.token);
       router.push("/dashboard");
     } catch (e) { 

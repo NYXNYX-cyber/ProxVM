@@ -16,8 +16,8 @@ const LXCStats = ({ id, onNotFound, onStatusUpdate }: { id: string, onNotFound: 
 
   const sync = useCallback(async () => {
     try {
-      const token = Cookies.get("token");
-      const res = await axios.get(`http://localhost:4000/api/vps/${id}/status?t=${Date.now()}`, {
+      const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+      const res = await axios.get(`${apiBase}/api/vps/${id}/status?t=${Date.now()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setData(res.data.status);
@@ -84,8 +84,9 @@ export default function Dashboard() {
   const fetchList = useCallback(async () => {
     const token = Cookies.get("token");
     if (!token) return router.push("/auth/login");
+    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
-      const res = await axios.get(`http://localhost:4000/api/vps/instances?t=${Date.now()}`, {
+      const res = await axios.get(`${apiBase}/api/vps/instances?t=${Date.now()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setList(res.data.instances);
@@ -108,6 +109,7 @@ export default function Dashboard() {
 
   const handleAction = async (id: string, act: string, vmid?: string) => {
     const token = Cookies.get("token");
+    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       if (act === 'delete' || act === 'destroy') {
         const expectedName = `VPS-${vmid}`;
@@ -119,7 +121,7 @@ export default function Dashboard() {
       }
 
       if (act === 'delete' || act === 'destroy') {
-        const url = act === 'delete' ? `http://localhost:4000/api/vps/${id}` : `http://localhost:4000/api/vps/${id}/destroy`;
+        const url = act === 'delete' ? `${apiBase}/api/vps/${id}` : `${apiBase}/api/vps/${id}/destroy`;
         
         if (act === 'delete') {
           await axios.delete(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -130,7 +132,7 @@ export default function Dashboard() {
         
         setList(prev => prev.filter(i => i.id !== id));
       } else {
-        await axios.post(`http://localhost:4000/api/vps/${id}/${act}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.post(`${apiBase}/api/vps/${id}/${act}`, {}, { headers: { Authorization: `Bearer ${token}` } });
         fetchList();
       }
     } catch (e: any) {
@@ -143,9 +145,10 @@ export default function Dashboard() {
   };
 
   const deploy = async (plan: any) => {
+    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const token = Cookies.get("token");
-      await axios.post("http://localhost:4000/api/vps/create", plan, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`${apiBase}/api/vps/create`, plan, { headers: { Authorization: `Bearer ${token}` } });
       setShowModal(false);
       fetchList();
       window.dispatchEvent(new Event('balance-update'));

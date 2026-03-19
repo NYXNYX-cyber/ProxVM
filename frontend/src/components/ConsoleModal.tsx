@@ -47,7 +47,7 @@ export default function ConsoleModal({ instanceId, onClose }: ConsoleModalProps)
 
     const token = Cookies.get("token");
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//localhost:4000/console?token=${token}&instanceId=${instanceId}`;
+    const wsUrl = `${protocol}//${window.location.hostname}:4000/console?token=${token}&instanceId=${instanceId}`;
 
     const socket = new WebSocket(wsUrl);
 
