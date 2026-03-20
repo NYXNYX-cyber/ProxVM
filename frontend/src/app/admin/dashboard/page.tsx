@@ -104,6 +104,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDestroy = async (id: string, vmid: string) => {
+    const expected = `VPS-${vmid}`;
+    const input = prompt(`PERINGATAN: Penghapusan permanen!\nKetik "${expected}" untuk mengonfirmasi:`);
+    if (input !== expected) return;
+
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
+    try {
+      const token = Cookies.get("token");
+      await axios.post(`${apiBase}/api/vps/${id}/destroy`, {}, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      fetchData();
+    } catch (e) {
+      alert("Failed to destroy instance");
+    }
+  };
+
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-zinc-950">
       <Loader2 className="animate-spin text-indigo-500" size={40} />
@@ -254,8 +271,16 @@ export default function AdminDashboard() {
                             className={`p-2 bg-zinc-800 rounded-xl transition-all ${
                               i.status === 'running' ? 'hover:bg-amber-500/20 text-zinc-400 hover:text-amber-500' : 'hover:bg-emerald-500/20 text-zinc-400 hover:text-emerald-500'
                             }`}
+                            title={i.status === 'running' ? "Stop VPS" : "Start VPS"}
                           >
                             <RefreshCw size={18} />
+                          </button>
+                          <button 
+                            onClick={() => handleDestroy(i.id, i.vmid.toString())}
+                            className="p-2 bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-500 rounded-xl transition-all"
+                            title="Destroy Instance"
+                          >
+                            <Trash2 size={18} />
                           </button>
                         </div>
                       </td>
