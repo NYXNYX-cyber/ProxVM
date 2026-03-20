@@ -23,7 +23,7 @@ export default function AdminDashboard() {
 
   const fetchData = useCallback(async () => {
     const token = Cookies.get("token");
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const [uRes, iRes] = await Promise.all([
         axios.get(`${apiBase}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
     const amount = prompt("Enter new credit amount:", current.toString());
     if (amount === null || isNaN(parseFloat(amount))) return;
 
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const token = Cookies.get("token");
       await axios.post(`${apiBase}/api/admin/credits/update`, 
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
 
   const deleteUser = async (id: string, email: string) => {
     if (!confirm(`Are you sure you want to delete user ${email}?`)) return;
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const token = Cookies.get("token");
       await axios.delete(`${apiBase}/api/admin/users/${id}`, { 
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
   };
 
   const handleVPSAction = async (id: string, act: string) => {
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const token = Cookies.get("token");
       await axios.post(`${apiBase}/api/vps/${id}/${act}`, {}, { 
@@ -91,7 +91,7 @@ export default function AdminDashboard() {
     const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
     if (!confirm(`Ubah role user ini menjadi ${newRole}?`)) return;
 
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const token = Cookies.get("token");
       await axios.post(`${apiBase}/api/admin/role/update`, 

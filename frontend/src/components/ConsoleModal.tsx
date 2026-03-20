@@ -46,8 +46,15 @@ export default function ConsoleModal({ instanceId, onClose }: ConsoleModalProps)
     term.writeln("Connecting to NyxHosting Console...");
 
     const token = Cookies.get("token");
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.hostname}:4000/console?token=${token}&instanceId=${instanceId}`;
+    let wsBase = process.env.NEXT_PUBLIC_API_URL;
+    if (wsBase) {
+      wsBase = wsBase.replace("http://", "ws://").replace("https://", "wss://");
+    } else {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      wsBase = `${protocol}//${window.location.hostname}:4000`;
+    }
+
+    const wsUrl = `${wsBase}/console?token=${token}&instanceId=${instanceId}`;
 
     const socket = new WebSocket(wsUrl);
 

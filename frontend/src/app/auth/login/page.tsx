@@ -16,7 +16,7 @@ export default function Login() {
   const submit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const res = await axios.post(`${apiBase}/api/auth/login`, form);
       Cookies.set("token", res.data.token);

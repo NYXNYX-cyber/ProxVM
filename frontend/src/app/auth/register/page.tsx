@@ -15,7 +15,7 @@ export default function Register() {
   const submit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       await axios.post(`${apiBase}/api/auth/register`, form);
       alert("Account created successfully! Please sign in.");

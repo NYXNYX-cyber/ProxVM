@@ -17,7 +17,7 @@ const LXCStats = ({ id, onNotFound, onStatusUpdate }: { id: string, onNotFound: 
   const sync = useCallback(async () => {
     try {
       const token = Cookies.get("token");
-      const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
       const res = await axios.get(`${apiBase}/api/vps/${id}/status?t=${Date.now()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -85,7 +85,7 @@ export default function Dashboard() {
   const fetchList = useCallback(async () => {
     const token = Cookies.get("token");
     if (!token) return router.push("/auth/login");
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const res = await axios.get(`${apiBase}/api/vps/instances?t=${Date.now()}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -110,7 +110,7 @@ export default function Dashboard() {
 
   const handleAction = async (id: string, act: string, vmid?: string) => {
     const token = Cookies.get("token");
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       if (act === 'delete' || act === 'destroy') {
         const expectedName = `VPS-${vmid}`;
@@ -146,7 +146,7 @@ export default function Dashboard() {
   };
 
   const deploy = async (plan: any) => {
-    const apiBase = `${window.location.protocol}//${window.location.hostname}:4000`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const token = Cookies.get("token");
       await axios.post(`${apiBase}/api/vps/create`, plan, { headers: { Authorization: `Bearer ${token}` } });
