@@ -225,17 +225,17 @@ export const createInstance = async (req: AuthRequest, res: Response): Promise<a
         await proxmoxService.addFRPProxy(newVmid, staticIp);
 
         // OTOMATISASI SSH CONFIG (Inside Container):
-        // Tunggu sejenak agar container siap menerima perintah exec
+        // Tunggu 15 detik agar container benar-benar siap
         setTimeout(async () => {
           try {
-            // Regex lebih kuat: ^#? (mencari baris yang diawali # atau tidak)
-            const sshFixCmd = `pct exec ${newVmid} -- bash -c "sed -i 's/^#\\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'root:trial-vps-123' | chpasswd && systemctl restart ssh"`;
+            // Perintah yang lebih 'brute-force' dan sederhana agar tidak gagal di escaping
+            const sshFixCmd = `pct exec ${newVmid} -- bash -c "sed -i 's/.*PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config && sed -i 's/.*PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config && echo 'root:trial-vps-123' | chpasswd && (service ssh restart || systemctl restart ssh)"`;
             await proxmoxService.executeSSHCommand(sshFixCmd);
-            console.log(`[SSH-CONFIG] SSH access and password forced for VPS-${newVmid}`);
+            console.log(`[SSH-CONFIG] Final attempt for VPS-${newVmid} successful`);
           } catch (e: any) {
             console.error(`[SSH-CONFIG] Gagal konfigurasi SSH internal: ${e.message}`);
           }
-        }, 8000); // Tunggu 8 detik agar OS di dalam CT benar-benar up
+        }, 15000);
       } catch (sshErr: any) {
         console.error(`[SSH-FRP-BRIDGE] Gagal setup tunnel: ${sshErr.message}`);
       }
