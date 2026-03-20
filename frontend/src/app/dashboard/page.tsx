@@ -229,9 +229,12 @@ export default function Dashboard() {
                         <h3 className="font-bold text-lg leading-tight">VPS-{i.vmid}</h3>
                         <div className="mt-2 p-2 bg-zinc-900/50 rounded-lg border border-zinc-800">
                           <p className="text-[9px] font-black text-indigo-400 uppercase tracking-tighter mb-1">SSH Access (Public)</p>
-                          <code className="text-[10px] text-zinc-300 font-mono break-all leading-tight block">
+                          <code className="text-[10px] text-zinc-300 font-mono break-all leading-tight block mb-1">
                             ssh -p {10000 + i.vmid} root@129.226.192.200
                           </code>
+                          <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1 pt-1 border-t border-zinc-800/50">
+                            Root Pass: <span className="text-emerald-500">trial-vps-123</span>
+                          </p>
                         </div>
                       </div>
                     </div>
