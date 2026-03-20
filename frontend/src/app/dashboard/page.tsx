@@ -228,9 +228,9 @@ export default function Dashboard() {
                       <div>
                         <h3 className="font-bold text-lg leading-tight">VPS-{i.vmid}</h3>
                         <div className="mt-2 p-2 bg-zinc-900/50 rounded-lg border border-zinc-800">
-                          <p className="text-[9px] font-black text-indigo-400 uppercase tracking-tighter mb-1">SSH Access (Bridge)</p>
+                          <p className="text-[9px] font-black text-indigo-400 uppercase tracking-tighter mb-1">SSH Access (Public)</p>
                           <code className="text-[10px] text-zinc-300 font-mono break-all leading-tight block">
-                            ssh -p {10000 + i.vmid} root@{typeof window !== 'undefined' ? window.location.hostname : 'IP'}
+                            ssh -p {10000 + i.vmid} root@129.226.192.200
                           </code>
                         </div>
                       </div>

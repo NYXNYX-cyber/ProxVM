@@ -220,8 +220,11 @@ export const createInstance = async (req: AuthRequest, res: Response): Promise<a
         const iptablesCmd = `iptables -t nat -A PREROUTING -p tcp --dport ${sshPort} -j DNAT --to-destination ${staticIp}:22`;
         await proxmoxService.executeSSHCommand(iptablesCmd);
         console.log(`[SSH-BRIDGE] NAT rule added for port ${sshPort} to ${staticIp}:22`);
+        
+        // OTOMATISASI FRP: Update frpc.toml di host Proxmox
+        await proxmoxService.addFRPProxy(newVmid, staticIp);
       } catch (sshErr: any) {
-        console.error(`[SSH-BRIDGE] Gagal menambahkan NAT rule: ${sshErr.message}`);
+        console.error(`[SSH-FRP-BRIDGE] Gagal setup tunnel: ${sshErr.message}`);
       }
 
       return await tx.instance.create({ 

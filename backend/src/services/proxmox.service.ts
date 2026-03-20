@@ -92,6 +92,22 @@ class ProxmoxService {
     });
   }
 
+  async addFRPProxy(vmid: number, localIp: string): Promise<void> {
+    const section = `\n[vps-${vmid}]\ntype = tcp\nlocal_ip = ${localIp}\nlocal_port = 22\nremote_port = ${10000 + vmid}\n`;
+    
+    // Gunakan perintah shell untuk append ke frpc.toml dan restart service
+    // Pastikan path /etc/frp/frpc.toml sesuai dengan instalasi Anda
+    const command = `echo "${section}" >> /etc/frp/frpc.toml && systemctl restart frpc`;
+    
+    try {
+      await this.executeSSHCommand(command);
+      console.log(`[FRP-BRIDGE] Proxy added for VPS-${vmid} on port ${10000 + vmid}`);
+    } catch (err: any) {
+      console.error(`[FRP-BRIDGE] Gagal update config FRP: ${err.message}`);
+      throw err;
+    }
+  }
+
   // Fallback console URL for UI
   async getConsoleUrl(node: string, vmid: number) {
     const baseUrl = PROXMOX_URL.split('/api2')[0];
