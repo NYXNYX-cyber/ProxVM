@@ -19,7 +19,7 @@ export default function Login() {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
     try {
       const res = await axios.post(`${apiBase}/api/auth/login`, form);
-      Cookies.set("token", res.data.token);
+      Cookies.set("token", res.data.token, { expires: 7 });
       router.push("/dashboard");
     } catch (e) { 
       alert("Login Failed. Please check your credentials."); 

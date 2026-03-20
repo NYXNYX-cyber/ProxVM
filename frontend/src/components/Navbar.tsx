@@ -51,12 +51,12 @@ export function Navbar() {
       <div className="flex items-center gap-4">
         {user && (
           <>
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[var(--muted)] rounded-full border border-[var(--border)] text-sm font-semibold">
-              <Wallet className="w-4 h-4 text-emerald-500" />
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 bg-[var(--muted)] rounded-full border border-[var(--border)] text-[11px] sm:text-sm font-semibold">
+              <Wallet className="w-3.5 h-3.5 sm:w-4 h-4 text-emerald-500" />
               <span>${user.credits.toFixed(2)}</span>
             </div>
             <Link href="/dashboard" className="text-sm font-semibold hover:text-indigo-600 transition-colors flex items-center gap-2">
-              <LayoutDashboard className="w-4 h-4" /> <span className="hidden md:inline">Dashboard</span>
+              <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">Dashboard</span>
             </Link>
           </>
         )}
