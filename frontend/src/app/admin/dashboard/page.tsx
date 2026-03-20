@@ -110,14 +110,19 @@ export default function AdminDashboard() {
     if (input !== expected) return;
 
     const apiBase = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
+    const token = Cookies.get("token");
+    
     try {
-      const token = Cookies.get("token");
       await axios.post(`${apiBase}/api/vps/${id}/destroy`, {}, { 
-        headers: { Authorization: `Bearer ${token}` } 
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        } 
       });
       fetchData();
-    } catch (e) {
-      alert("Failed to destroy instance");
+    } catch (e: any) {
+      console.error("Destroy error:", e.response?.data);
+      alert(e.response?.data?.error || "Failed to destroy instance");
     }
   };
 
