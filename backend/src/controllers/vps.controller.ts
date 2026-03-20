@@ -105,18 +105,24 @@ export const deleteInstance = async (req: AuthRequest, res: Response): Promise<a
 export const destroyInstance = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const userId = req.user?.userId;
+    const userRole = req.user?.role;
     const { id } = req.params;
 
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const instance = await prisma.instance.findUnique({ where: { id: id as string } });
-    if (!instance || instance.userId !== userId) return res.status(404).json({ error: 'Not found' });
+    
+    // Cek akses: Harus Owner ATAU Admin
+    if (!instance || (instance.userId !== userId && userRole !== 'ADMIN')) {
+      return res.status(404).json({ error: 'Instance not found or access denied' });
+    }
 
-    // 1. Coba matikan dulu (Proxmox tidak bisa hapus CT yang menyala)
+    console.log(`[Destroy] Memproses penghapusan VPS-${instance.vmid} (Requested by: ${userRole})...`);
+
+    // 1. Paksa matikan (Proxmox tidak bisa hapus CT yang menyala)
     try {
       await proxmoxService.stopVM(instance.node, instance.vmid, 'lxc');
-      // Tunggu sebentar agar proses stop selesai
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Tunggu 3 detik
     } catch (e) {
       // Abaikan jika sudah mati
     }
@@ -124,8 +130,14 @@ export const destroyInstance = async (req: AuthRequest, res: Response): Promise<
     // 2. Hapus dari Proxmox
     try {
       await proxmoxService.deleteLXC(instance.node, instance.vmid);
+      console.log(`[Destroy] VPS-${instance.vmid} berhasil dihapus dari Proxmox.`);
     } catch (proxmoxError: any) {
-      console.warn('[Destroy]: Gagal hapus di Proxmox, mungkin sudah tidak ada.');
+      const errMsg = proxmoxError.response?.data?.errors || proxmoxError.message;
+      console.error(`[Destroy Error] Proxmox gagal hapus VPS-${instance.vmid}:`, errMsg);
+      // Tetap lanjut ke hapus DB jika error-nya adalah "not exist"
+      if (!proxmoxError.message.includes("not exist") && !JSON.stringify(errMsg).includes("not exist")) {
+        return res.status(500).json({ error: `Gagal menghapus di Proxmox: ${JSON.stringify(errMsg)}` });
+      }
     }
 
     // 3. Hapus dari Database
@@ -133,6 +145,7 @@ export const destroyInstance = async (req: AuthRequest, res: Response): Promise<
 
     return res.json({ message: 'Instance destroyed permanently' });
   } catch (error: any) {
+    console.error('[Destroy Fatal]:', error.message);
     return res.status(500).json({ error: 'Gagal memusnahkan VPS' });
   }
 };
