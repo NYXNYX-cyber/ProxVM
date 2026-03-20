@@ -228,13 +228,14 @@ export const createInstance = async (req: AuthRequest, res: Response): Promise<a
         // Tunggu sejenak agar container siap menerima perintah exec
         setTimeout(async () => {
           try {
-            const sshFixCmd = `pct exec ${newVmid} -- bash -c "sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && systemctl restart ssh"`;
+            // Regex lebih kuat: ^#? (mencari baris yang diawali # atau tidak)
+            const sshFixCmd = `pct exec ${newVmid} -- bash -c "sed -i 's/^#\\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'root:trial-vps-123' | chpasswd && systemctl restart ssh"`;
             await proxmoxService.executeSSHCommand(sshFixCmd);
-            console.log(`[SSH-CONFIG] SSH access enabled for VPS-${newVmid}`);
+            console.log(`[SSH-CONFIG] SSH access and password forced for VPS-${newVmid}`);
           } catch (e: any) {
             console.error(`[SSH-CONFIG] Gagal konfigurasi SSH internal: ${e.message}`);
           }
-        }, 5000); // Tunggu 5 detik
+        }, 8000); // Tunggu 8 detik agar OS di dalam CT benar-benar up
       } catch (sshErr: any) {
         console.error(`[SSH-FRP-BRIDGE] Gagal setup tunnel: ${sshErr.message}`);
       }
