@@ -227,7 +227,12 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <h3 className="font-bold text-lg leading-tight">VPS-{i.vmid}</h3>
-                        <p className="text-xs text-[var(--muted-foreground)] font-medium mt-0.5">{i.ipv4 || "DHCP Assigned"}</p>
+                        <div className="mt-2 p-2 bg-zinc-900/50 rounded-lg border border-zinc-800">
+                          <p className="text-[9px] font-black text-indigo-400 uppercase tracking-tighter mb-1">SSH Access (Bridge)</p>
+                          <code className="text-[10px] text-zinc-300 font-mono break-all leading-tight block">
+                            ssh -p {10000 + i.vmid} root@{typeof window !== 'undefined' ? window.location.hostname : 'IP'}
+                          </code>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

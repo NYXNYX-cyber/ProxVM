@@ -61,6 +61,37 @@ class ProxmoxService {
     return response.data.data;
   }
 
+  async executeSSHCommand(command: string): Promise<string> {
+    const { Client } = require('ssh2');
+    const conn = new Client();
+    
+    return new Promise((resolve, reject) => {
+      const sshConfig = {
+        host: '10.10.5.200', // IP Node Proxmox Anda
+        port: 22,
+        username: 'root',
+        password: process.env.PROXMOX_PASSWORD || 'AsusTerbaik5'
+      };
+
+      conn.on('ready', () => {
+        let output = '';
+        conn.exec(command, (err: any, stream: any) => {
+          if (err) return reject(err);
+          stream.on('close', (code: any, signal: any) => {
+            conn.end();
+            resolve(output);
+          }).on('data', (data: any) => {
+            output += data;
+          }).stderr.on('data', (data: any) => {
+            console.error('[SSH STDERR]:', data.toString());
+          });
+        });
+      }).on('error', (err: any) => {
+        reject(err);
+      }).connect(sshConfig);
+    });
+  }
+
   // Fallback console URL for UI
   async getConsoleUrl(node: string, vmid: number) {
     const baseUrl = PROXMOX_URL.split('/api2')[0];

@@ -197,6 +197,9 @@ export const createInstance = async (req: AuthRequest, res: Response): Promise<a
       const template = process.env.PROXMOX_LXC_TEMPLATE || '';
       const storage = process.env.PROXMOX_LXC_STORAGE || 'local-lvm';
       
+      const staticIp = `10.10.5.${newVmid}`;
+      const sshPort = 10000 + newVmid;
+
       await proxmoxService.createLXC(node, { 
         vmid: newVmid, 
         ostemplate: template, 
@@ -206,11 +209,20 @@ export const createInstance = async (req: AuthRequest, res: Response): Promise<a
         password: 'trial-vps-123', 
         cores: product.vcpu, 
         memory: product.ram, 
-        net0: 'name=eth0,bridge=vmbr0,ip=dhcp,firewall=1', 
+        net0: `name=eth0,bridge=vmbr0,ip=${staticIp}/24,gw=10.10.5.1,firewall=1`, 
         unprivileged: 1, 
         features: 'nesting=1', 
         start: 0 
       });
+
+      // OTOMATISASI SSH BRIDGE: Tambahkan aturan IPTables di Proxmox Host
+      try {
+        const iptablesCmd = `iptables -t nat -A PREROUTING -p tcp --dport ${sshPort} -j DNAT --to-destination ${staticIp}:22`;
+        await proxmoxService.executeSSHCommand(iptablesCmd);
+        console.log(`[SSH-BRIDGE] NAT rule added for port ${sshPort} to ${staticIp}:22`);
+      } catch (sshErr: any) {
+        console.error(`[SSH-BRIDGE] Gagal menambahkan NAT rule: ${sshErr.message}`);
+      }
 
       return await tx.instance.create({ 
         data: { 
@@ -219,7 +231,7 @@ export const createInstance = async (req: AuthRequest, res: Response): Promise<a
           vmid: newVmid, 
           node, 
           status: 'provisioning', 
-          ipv4: 'Pending', 
+          ipv4: staticIp, 
           password: 'trial-vps-123' 
         }, 
         include: { product: true } 
