@@ -225,17 +225,24 @@ export const createInstance = async (req: AuthRequest, res: Response): Promise<a
         await proxmoxService.addFRPProxy(newVmid, staticIp);
 
         // OTOMATISASI SSH CONFIG (Inside Container):
-        // Tunggu 15 detik agar container benar-benar siap
+        // Tunggu 20 detik agar OS benar-benar stabil
         setTimeout(async () => {
           try {
-            // Perintah yang lebih 'brute-force' dan sederhana agar tidak gagal di escaping
-            const sshFixCmd = `pct exec ${newVmid} -- bash -c "sed -i 's/.*PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config && sed -i 's/.*PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config && echo 'root:trial-vps-123' | chpasswd && (service ssh restart || systemctl restart ssh)"`;
-            await proxmoxService.executeSSHCommand(sshFixCmd);
-            console.log(`[SSH-CONFIG] Final attempt for VPS-${newVmid} successful`);
+            console.log(`[SSH-CONFIG] Memulai konfigurasi otomatis untuk VPS-${newVmid}...`);
+            
+            // Perintah "Brute Force" yang lebih simpel: 
+            // 1. Hapus baris lama (jika ada) agar tidak duplikat
+            // 2. Tambahkan baris baru di akhir file
+            // 3. Paksa ganti password
+            // 4. Restart SSH
+            const cmd = `pct exec ${newVmid} -- sh -c "sed -i '/PermitRootLogin/d' /etc/ssh/sshd_config && sed -i '/PasswordAuthentication/d' /etc/ssh/sshd_config && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config && echo 'root:trial-vps-123' | chpasswd && (systemctl restart ssh || service ssh restart)"`;
+            
+            const output = await proxmoxService.executeSSHCommand(cmd);
+            console.log(`[SSH-CONFIG] Hasil eksekusi VPS-${newVmid}: ${output || 'Success (No output)'}`);
           } catch (e: any) {
-            console.error(`[SSH-CONFIG] Gagal konfigurasi SSH internal: ${e.message}`);
+            console.error(`[SSH-CONFIG] FATAL ERROR VPS-${newVmid}: ${e.message}`);
           }
-        }, 15000);
+        }, 20000);
       } catch (sshErr: any) {
         console.error(`[SSH-FRP-BRIDGE] Gagal setup tunnel: ${sshErr.message}`);
       }
