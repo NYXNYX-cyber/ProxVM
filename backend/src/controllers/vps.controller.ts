@@ -223,6 +223,18 @@ export const createInstance = async (req: AuthRequest, res: Response): Promise<a
         
         // OTOMATISASI FRP: Update frpc.toml di host Proxmox
         await proxmoxService.addFRPProxy(newVmid, staticIp);
+
+        // OTOMATISASI SSH CONFIG (Inside Container):
+        // Tunggu sejenak agar container siap menerima perintah exec
+        setTimeout(async () => {
+          try {
+            const sshFixCmd = `pct exec ${newVmid} -- bash -c "sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && systemctl restart ssh"`;
+            await proxmoxService.executeSSHCommand(sshFixCmd);
+            console.log(`[SSH-CONFIG] SSH access enabled for VPS-${newVmid}`);
+          } catch (e: any) {
+            console.error(`[SSH-CONFIG] Gagal konfigurasi SSH internal: ${e.message}`);
+          }
+        }, 5000); // Tunggu 5 detik
       } catch (sshErr: any) {
         console.error(`[SSH-FRP-BRIDGE] Gagal setup tunnel: ${sshErr.message}`);
       }
