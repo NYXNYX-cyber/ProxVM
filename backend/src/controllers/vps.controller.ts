@@ -212,35 +212,29 @@ export const createInstance = async (req: AuthRequest, res: Response): Promise<a
         net0: `name=eth0,bridge=vmbr0,ip=${staticIp}/24,gw=10.10.5.1,firewall=1`, 
         unprivileged: 1, 
         features: 'nesting=1', 
-        start: 0 
+        start: 1 // OTOMATIS NYALAKAN SETELAH DIBUAT
       });
 
-      // OTOMATISASI SSH BRIDGE: Tambahkan aturan IPTables di Proxmox Host
+      // OTOMATISASI SSH BRIDGE & CONFIG
       try {
         const iptablesCmd = `iptables -t nat -A PREROUTING -p tcp --dport ${sshPort} -j DNAT --to-destination ${staticIp}:22`;
         await proxmoxService.executeSSHCommand(iptablesCmd);
-        console.log(`[SSH-BRIDGE] NAT rule added for port ${sshPort} to ${staticIp}:22`);
         
-        // OTOMATISASI FRP: Update frpc.toml di host Proxmox
         await proxmoxService.addFRPProxy(newVmid, staticIp);
 
         // OTOMATISASI SSH CONFIG (Inside Container):
-        // Tunggu 20 detik agar OS benar-benar stabil
         setTimeout(async () => {
           try {
-            console.log(`[SSH-CONFIG] Memulai konfigurasi otomatis untuk VPS-${newVmid}...`);
+            console.log(`[SSH-CONFIG] Menyiapkan VPS-${newVmid}...`);
+            // Pastikan container ON (double check)
+            await proxmoxService.startVM(node, newVmid, 'lxc').catch(() => {});
             
-            // Perintah "Brute Force" yang lebih simpel: 
-            // 1. Hapus baris lama (jika ada) agar tidak duplikat
-            // 2. Tambahkan baris baru di akhir file
-            // 3. Paksa ganti password
-            // 4. Restart SSH
-            const cmd = `pct exec ${newVmid} -- sh -c "sed -i '/PermitRootLogin/d' /etc/ssh/sshd_config && sed -i '/PasswordAuthentication/d' /etc/ssh/sshd_config && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config && echo 'root:trial-vps-123' | chpasswd && (systemctl restart ssh || service ssh restart)"`;
+            const cmd = `pct exec ${newVmid} -- sh -c "sed -i '/PermitRootLogin/d' /etc/ssh/sshd_config && sed -i '/PasswordAuthentication/d' /etc/ssh/sshd_config && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config && echo 'root:trial-vps-123' | chpasswd && (service ssh restart || /etc/init.d/ssh restart || systemctl restart ssh)"`;
             
-            const output = await proxmoxService.executeSSHCommand(cmd);
-            console.log(`[SSH-CONFIG] Hasil eksekusi VPS-${newVmid}: ${output || 'Success (No output)'}`);
+            await proxmoxService.executeSSHCommand(cmd);
+            console.log(`[SSH-CONFIG] VPS-${newVmid} siap digunakan.`);
           } catch (e: any) {
-            console.error(`[SSH-CONFIG] FATAL ERROR VPS-${newVmid}: ${e.message}`);
+            console.error(`[SSH-CONFIG] Gagal pada VPS-${newVmid}: ${e.message}`);
           }
         }, 20000);
       } catch (sshErr: any) {
